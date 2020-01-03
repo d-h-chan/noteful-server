@@ -8,7 +8,7 @@ const jsonParser = express.json()
 
 const serializeFolder = folder => ({
   id: folder.id,
-  folder: xss(folder.name),
+  name: xss(folder.name),
 })
 
 foldersRouter
@@ -16,8 +16,8 @@ foldersRouter
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     FoldersService.getAllFolders(knexInstance)
-      .then(articles => {
-        res.json(articles.map(serializeFolder))
+      .then(folders => {
+        res.json(folders.map(serializeFolder))
       })
       .catch(next)
   })
@@ -45,30 +45,30 @@ foldersRouter
   })
 
 foldersRouter
-  .route('/:article_id')
+  .route('/:folder_id')
   .all((req, res, next) => {
     FoldersService.getById(
       req.app.get('db'),
-      req.params.article_id
+      req.params.folder_id
     )
-      .then(article => {
-        if (!article) {
+      .then(folder => {
+        if (!folder) {
           return res.status(404).json({
-            error: { message: `Article doesn't exist` }
+            error: { message: `Folder doesn't exist` }
           })
         }
-        res.article = article
+        res.folder = folder
         next()
       })
       .catch(next)
   })
   .get((req, res, next) => {
-    res.json(serializeFolder(res.article))
+    res.json(serializeFolder(res.folder))
   })
   .delete((req, res, next) => {
-    FoldersService.deleteArticle(
+    FoldersService.deleteFolder(
       req.app.get('db'),
-      req.params.article_id
+      req.params.folder_id
     )
       .then(numRowsAffected => {
         res.status(204).end()
